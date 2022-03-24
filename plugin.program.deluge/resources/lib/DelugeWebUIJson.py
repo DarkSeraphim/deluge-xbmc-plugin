@@ -6,6 +6,7 @@ Created on Mar 29, 2012
 
 import json, urllib2
 from utils import unGzip
+import xbmc
 
 class DelugeWebUIJson(object):
     jsonid = 1
@@ -19,6 +20,10 @@ class DelugeWebUIJson(object):
     def sendReq(self, methodName, params, jsonid, cookie):
         json_dict = {'method':methodName,'params':params,'id':jsonid}
         data = json.dumps(json_dict)
+        
+        xbmc.log(self.url, xbmc.LOGINFO)
+        xbmc.log(data, xbmc.LOGINFO)
+
         req = urllib2.Request(self.url, data, {'Content-Type': 'application/json'})
         if cookie is not None :
             req.add_header('cookie', cookie)
@@ -26,10 +31,13 @@ class DelugeWebUIJson(object):
         DelugeWebUIJson.cookie = res.headers.get('Set-Cookie')
         encoding = res.headers.getheader('Content-Encoding')
         content = res.read()
+        if res is None:
+            xbmc.log("Res was none", xbmc.LOGINFO)
         res.close()
-        if encoding == 'gzip' :
+        xbmc.log("encoding was " + str(encoding) + ". Content was '" + str(content) + "'", xbmc.LOGINFO)
+        if encoding == 'gzip':
             return unGzip(content)
-        return None
+        return content
     
     def getJsonId(self):
         self.jsonid += 1

@@ -1,0 +1,4 @@
+{
+  "pythonVersion": "2.7",
+  "extraPaths": ["plugin.program.deluge/resources/lib"]
+}

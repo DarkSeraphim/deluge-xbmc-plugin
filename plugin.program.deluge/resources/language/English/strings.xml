@@ -10,12 +10,14 @@
 	<string id="30007">m</string>
 	<string id="30009">No Label</string>
 	<!-- Settings labels -->
-	<string id="30100">IP Address:</string>
+	<string id="30100">Hostname:</string>
 	<string id="30101">Port:</string>
 	<string id="30103">Password:</string>
 	<string id="30104">Torrent Path:</string>
 	<string id="30105">Minimum count of torrents to by grouped by status:</string>
-	<string id="30106">Confirma torrnet removing:</string>
+	<string id="30106">Confirm before removing torrent:</string>
+	<string id="30107">Secure</string>
+	<string id="30108">Path</string>
 	<!-- dialog.select -->
 	<string id="32001">Perform function:</string>
 	<string id="32002">Pause</string>
