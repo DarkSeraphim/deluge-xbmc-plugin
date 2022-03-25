@@ -1,4 +1,9 @@
-import urllib, sys, os, re, time
+import __future__
+
+from future import standard_library
+standard_library.install_aliases()
+
+import urllib, urllib.parse, sys, os, re, time
 import xbmcaddon, xbmcplugin, xbmcgui, xbmc
 
 # Plugin constants 
@@ -6,8 +11,8 @@ __addonname__ = "DelugeXBMCPlugin"
 __addonid__   = "plugin.program.deluge"
 __addon__     = xbmcaddon.Addon(id=__addonid__)
 __language__  = __addon__.getLocalizedString
-__cwd__       = xbmc.translatePath( __addon__.getAddonInfo('path') ).decode('utf-8')
-__profile__   = xbmc.translatePath( __addon__.getAddonInfo('profile') ).decode('utf-8')
+__cwd__       = xbmc.translatePath( __addon__.getAddonInfo('path') )#.decode('utf-8')
+__profile__   = xbmc.translatePath( __addon__.getAddonInfo('profile') )#.decode('utf-8')
 __icondir__   = os.path.join( __cwd__, 'resources', 'icons' )
 
 # Shared resources 
@@ -29,13 +34,11 @@ UT_PORT = __addon__.getSetting('port')
 UT_PATH = __addon__.getSetting('path')
 UT_PASSWORD = __addon__.getSetting('pwd')
 
-def build_query(params={}):
-    # TODO: urlencode
-    query = '&'.join([k + '=' + v for (k,v) in params])
-    return sys.argv[0] + '?' + query
-        
-
 addon_handle = sys.argv[0]
+
+def create_url(action, params={}):
+    params.update({'action': action})
+    return addon_handle + '?' + urllib.parse.urlencode(params)
 
 protocol = 'https'
 if (UT_SECURE != True and UT_SECURE != 'true'):
@@ -48,6 +51,7 @@ path += 'json'
 
 url = protocol + '://' + UT_ADDRESS + ':' + UT_PORT + path
 baseurl = url
+log_info('Connecting to ' + url)
 
 webUI = DelugeWebUI(url)
     
@@ -120,18 +124,12 @@ def removeTorrent(selection, removeData):
 
 def restoreSession():
     try:
-        log_info("Restoring session...")
         ret = webUI.checkSession()
-        log_info("Done checking session, it was " + str(ret))
         if not ret:
-            log_info("Logging in with password " + UT_PASSWORD)
             if webUI.login(UT_PASSWORD):
-                log_info("Logged in.")
                 ret = webUI.connected()
-                log_info("Am I connected? " + str(ret))
                 if not ret:
                     webUI.connectToFirstHost()
-                    log_info("Connected to first host")
     except urllib2.URLError as err:
         log_info(str(err))
         dialog = xbmcgui.Dialog()
@@ -151,7 +149,7 @@ def resumeAll():
     xbmc.executebuiltin('Container.Refresh')
     
 def get_params():
-    param=[]
+    param={} # type: dict[str, str]
     paramstring=sys.argv[2]
     if len(paramstring)>=2:
             params=sys.argv[2]
@@ -169,7 +167,7 @@ def get_params():
     return param
 
 def getTranslation(translationId):
-    return __language__(translationId).encode('utf8')
+    return __language__(translationId)#.encode('utf8')
 
 def addTorrent(name, url, mode, iconimage, hashNum):
     u = sys.argv[0]+"?"
@@ -185,9 +183,9 @@ def addFilters(filter, mode, label):
         displayName = getTranslation(30009) + '(' + str(filter.count) + ')'
     else:
         displayName = str(filter)
-    u = sys.argv[0] + "?url=&mode=" + str(mode) + "&filterName=" + urllib.quote_plus(filter.name) + "&filterCount=" + str(filter.count)
+    u = sys.argv[0] + "?url=&mode=" + str(mode) + "&filterName=" + urllib.parse.quote_plus(filter.name) + "&filterCount=" + str(filter.count)
     if label:
-        u = u + "&labelName=" + urllib.quote_plus(label.name) + "&labelCount=" + str(label.count)
+        u = u + "&labelName=" + urllib.parse.quote_plus(label.name) + "&labelCount=" + str(label.count)
     ok = True
     liz = xbmcgui.ListItem(displayName, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
     liz.setInfo( type="Video", infoLabels = {"Title": displayName} )
@@ -217,7 +215,7 @@ def listFilters():
     point = xbmcgui.ListItem('Add torrent')
     rp = "XBMC.RunPlugin(%s?mode=%s)"
     # point.addContextMenuItems([(getTranslation(32011), rp % (sys.argv[0], 1000)), (getTranslation(32012), rp % (sys.argv[0], 1001))], replaceItems=True)
-    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url='',listitem=point,isFolder=False)
+    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=create_url('add_torrent'),listitem=point,isFolder=False)
 
     # End menu button
 
@@ -227,11 +225,11 @@ def listFilters():
 def getParams():
     global url, name, mode, hashNum, filterName, filterCount, labelName, labelCount
     try:
-        url = urllib.unquote_plus(params['url'])
+        url = urllib.parse.unquote_plus(params['url'])
     except:
         pass
     try:
-        name = urllib.unquote_plus(params['name'])
+        name = urllib.parse.unquote_plus(params['name'])
     except:
         pass
     try:
@@ -239,23 +237,23 @@ def getParams():
     except:
         pass
     try:
-        hashNum = urllib.unquote_plus(params['hashNum'])
+        hashNum = urllib.parse.unquote_plus(params['hashNum'])
     except:
         pass
     try:
-        filterName = urllib.unquote_plus(params['filterName'])
+        filterName = urllib.parse.unquote_plus(params['filterName'])
     except:
         pass
     try:
-        filterCount = int(urllib.unquote_plus(params['filterCount']))
+        filterCount = int(urllib.parse.unquote_plus(params['filterCount']))
     except:
         pass
     try:
-        labelName = urllib.unquote_plus(params['labelName'])
+        labelName = urllib.parse.unquote_plus(params['labelName'])
     except:
         labelName = ''
     try:
-        labelCount = int(urllib.unquote_plus(params['labelCount']))
+        labelCount = int(urllib.parse.unquote_plus(params['labelCount']))
     except:
         labelCount = 0
 
@@ -263,6 +261,10 @@ xbmc.log( '-----------------------------------Deluge.Plugin-Started---', xbmc.LO
 
 
 log_info(' - '.join(sys.argv))
+
+ps = urllib.parse.parse_qs(sys.argv[2][1:])
+
+
 params = get_params()
 url = None
 name = None

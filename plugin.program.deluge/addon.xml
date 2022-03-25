@@ -5,6 +5,7 @@
        provider-name="Andriy Korchak (kharts)">
     <requires>
         <import addon="xbmc.python" version="2.1.0"/>
+        <import addon="script.module.future" version="0.17.1"/>
     </requires>
     <extension point="xbmc.python.pluginsource" library="default.py">
         <provides>executable</provides>
