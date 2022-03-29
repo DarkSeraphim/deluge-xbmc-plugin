@@ -3,10 +3,10 @@ import __future__
 from future import standard_library
 standard_library.install_aliases()
 
-import urllib, urllib.parse, sys, os, re, time
+import urllib, urllib.parse, sys, os
 import xbmcaddon, xbmcplugin, xbmcgui, xbmc
 
-# Plugin constants 
+# Plugin constants
 __addonname__ = "DelugeXBMCPlugin"
 __addonid__   = "plugin.program.deluge"
 __addon__     = xbmcaddon.Addon(id=__addonid__)
@@ -15,7 +15,7 @@ __cwd__       = xbmc.translatePath( __addon__.getAddonInfo('path') )#.decode('ut
 __profile__   = xbmc.translatePath( __addon__.getAddonInfo('profile') )#.decode('utf-8')
 __icondir__   = os.path.join( __cwd__, 'resources', 'icons' )
 
-# Shared resources 
+# Shared resources
 BASE_RESOURCE_PATH = os.path.join( __cwd__, 'resources', 'lib' )
 sys.path.append (BASE_RESOURCE_PATH)
 
@@ -23,7 +23,6 @@ def log_info(message):
     xbmc.log(message, xbmc.LOGINFO)
 
 from utilities import *
-import json
 from DelugeWebUI import DelugeWebUI
 from Filter import Filter
 from States import States
@@ -54,7 +53,7 @@ baseurl = url
 log_info('Connecting to ' + url)
 
 webUI = DelugeWebUI(url)
-    
+
 def isTorrentListable(torrent, stateName):
     if torrent.state == stateName:
         return True
@@ -88,8 +87,8 @@ def listTorrents(torrentList, stateName):
             url = baseurl
             addTorrent(torrentInfo.name + " " + getTranslation(30001) + str(torrentInfo.progress)+"% "+getTranslation(30002) + torrentInfo.getStrSize() + " " + getTranslation(30003) + str(torrentInfo.downloadPayloadRate) + "Kb/s " + getTranslation(30004) + str(torrentInfo.uploadPayloadRate)+"Kb/s " + getTranslation(30005) + torrentInfo.getStrEta(), url, mode, thumb, torrentInfo.torrentId)
             mode = mode + 1
-    
-    #xbmc.executebuiltin('Container.SetViewMode(500)') # 55 - List; 
+
+    #xbmc.executebuiltin('Container.SetViewMode(500)') # 55 - List;
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
 
 def performAction(selection):
@@ -137,7 +136,7 @@ def restoreSession():
         if ret == True:
             __addon__.openSettings()
         sys.exit()
-    
+
 def pauseAll():
     restoreSession()
     webUI.pauseAllTorrents()
@@ -147,7 +146,7 @@ def resumeAll():
     restoreSession()
     webUI.resumeAllTorrents()
     xbmc.executebuiltin('Container.Refresh')
-    
+
 def get_params():
     param={} # type: dict[str, str]
     paramstring=sys.argv[2]
@@ -176,7 +175,7 @@ def addTorrent(name, url, mode, iconimage, hashNum):
     rp = "XBMC.RunPlugin(%s?mode=%s)"
     point.addContextMenuItems([(getTranslation(32011), rp % (sys.argv[0], 1000)), (getTranslation(32012), rp % (sys.argv[0], 1001))], replaceItems=True)
     ok = xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=point,isFolder=False)
-    
+
 def addFilters(filter, mode, label):
     iconimage = ''
     if filter.name == '':
@@ -209,7 +208,7 @@ def listFilters():
     for label in labels:
         if label.count > 0:
             addFilters(label, 5005, label)
-   
+
     # Start menu button
     #u = sys.argv[0]+"?url="+urllib.quote_plus(url)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)+"&hashNum="+str(hashNum)
     point = xbmcgui.ListItem('Add torrent')
@@ -221,7 +220,7 @@ def listFilters():
 
 
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
-        
+
 def getParams():
     global url, name, mode, hashNum, filterName, filterCount, labelName, labelCount
     try:
@@ -262,23 +261,35 @@ xbmc.log( '-----------------------------------Deluge.Plugin-Started---', xbmc.LO
 
 log_info(' - '.join(sys.argv))
 
-ps = urllib.parse.parse_qs(sys.argv[2][1:])
-
-
+mode = -1
 params = get_params()
 url = None
 name = None
-mode = 0
 hashNum = None
 filterName = None
 
 getParams()
 
+ps = (lambda: urllib.parse.parse_qs(sys.argv[2][1:]))()
+action = next(iter(ps.get('action', [])), None)
+if action is None:
+    log_info("No action, fall back to the old")
+    mode = 0
+else:
+    if action == 'main':
+        listFilters()
+    elif action == 'add_torrent':
+        log_info('Add torrent menu')
+        listFilters()
+    
+
+
+
 xbmc.log('The mode was ' + str(mode), xbmc.LOGINFO )
 
 if mode == 0:
     listFilters()
-    
+
 if mode == 7007:
     restoreSession()
     if labelCount > 0:
@@ -297,7 +308,7 @@ if mode == 5005:
     else:
         listTorrents(torrents, States.All)
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
-    
+
 
 elif mode == 1000:
     pauseAll()
