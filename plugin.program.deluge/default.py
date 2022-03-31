@@ -24,6 +24,7 @@ def log_info(message):
 
 from utilities import *
 from DelugeWebUI import DelugeWebUI
+from AddTorrentMenu import AddTorrentMenu
 from Filter import Filter
 from States import States
 
@@ -280,10 +281,8 @@ else:
         listFilters()
     elif action == 'add_torrent':
         log_info('Add torrent menu')
-        listFilters()
-    
-
-
+        menu = AddTorrentMenu()
+        menu.doModal()
 
 xbmc.log('The mode was ' + str(mode), xbmc.LOGINFO )
 
